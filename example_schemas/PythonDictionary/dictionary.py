@@ -46,6 +46,11 @@ schema = {
                 "attachment": "https://media4.s-nbcnews.com/i/newscms/2020_08/3241236/200223-chevy-c8-cs-158p_ee63ca035f5144382d5dbbe3aea81192.jpg"
             }
         ],
+        "csv": [
+            {
+                "filename": "example_schemas/CSV/task_data.csv"
+            }
+        ],
         "useIdempotency": True # Recommended safety precaution to avoid duplicates
     }
 }
