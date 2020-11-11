@@ -1,5 +1,3 @@
-import requests
-from requests.auth import HTTPBasicAuth
 import json
 import concurrent.futures
 import threading
@@ -9,6 +7,7 @@ import schema_validation
 import project
 import batch
 import task
+import client
 
 CONCURRENCY_LIMIT = 30
 
@@ -17,7 +16,7 @@ schema = {
         "name": "Insert Test 2", # Required
         "type": "imageannotation", # Required
         "instruction": "Do the other thing", # Required
-        "callback_url": "https://www.example.com/callback", # Required
+        "callback_url": "https://www.example.com/callback", # Required, but can be just "https://www.example.com/callback"
         "geometries": {
             "box": {
                 "objects_to_annotate": ["Bike", "Cool Car"]
@@ -69,40 +68,30 @@ schema = {
     }
 }
 
-class SailClient:
-    def __init__(self, api_key, concurrency_limit):
-        self.api_key = api_key
-        self.concurrency_limit = concurrency_limit
-    
-    def makeScaleRequest(self, method, url, custom_headers={}, json=None):
-        
-        auth = HTTPBasicAuth(self.api_key, '')
-        headers = {
-            "Content-Type": "application/json",
-        }
-        headers = {**headers, **custom_headers}
-
-        return requests.request(
-            method, url=url, json=json, headers=headers, auth=auth
-        )
-
 def main():
+    # Specify your API Key, live_xxxxxxxxx
     if 'API_KEY' not in os.environ:
         raise(Exception(f"Missing `API_KEY` as Environment Variable"))
 
-    client = SailClient(os.environ["API_KEY"], CONCURRENCY_LIMIT)
+    # Create a Sail client to handle making requests to Scale
+    sail_client = client.Sail(os.environ["API_KEY"], CONCURRENCY_LIMIT)
 
+    # Validate that the schema is valid
     schema_validation.validate_schema(schema)
 
-    project.upsert(client, schema['project'])
+    # Get or Create the Project
+    project.upsert(sail_client, schema['project'])
 
+    # If we're using batches, create them
     if ('batches' in schema):
-        batch.upsert(client, schema['project']['name'], schema['batches'])
+        batch.upsert(sail_client, schema['project']['name'], schema['batches'])
 
-    task.create(client, schema['project'], schema.get('batches', None), schema['tasks'])
+    # Create all tasks specified
+    task.create(sail_client, schema['project'], schema.get('batches', None), schema['tasks'])
 
+    # If we were using batches and we want to finalized them, do so
     if ('batches' in schema and schema['batches'].get('finalizeBatchAfterSubmission', True)):
-        batch.finalize(client, schema['batches'])
+        batch.finalize(sail_client, schema['batches'])
 
 if __name__ == "__main__":
     main()
