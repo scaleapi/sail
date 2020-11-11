@@ -9,8 +9,6 @@ import batch
 import task
 import client
 
-CONCURRENCY_LIMIT = 30
-
 schema = {
     "project": {
         "name": "Insert Test 2", # Required
@@ -74,7 +72,7 @@ def main():
         raise(Exception(f"Missing `API_KEY` as Environment Variable"))
 
     # Create a Sail client to handle making requests to Scale
-    sail_client = client.Sail(os.environ["API_KEY"], CONCURRENCY_LIMIT)
+    sail_client = client.Sail(os.environ["API_KEY"])
 
     # Validate that the schema is valid
     schema_validation.validate_schema(schema)

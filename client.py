@@ -2,7 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 class Sail:
-    def __init__(self, api_key, concurrency_limit):
+    def __init__(self, api_key, concurrency_limit=30):
         self.api_key = api_key
         self.concurrency_limit = concurrency_limit
     
