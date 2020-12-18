@@ -98,11 +98,9 @@ def get_tasks(batch):
     next_token = True
 
     try:
-
         with open(file_name, "w") as f:
             f.write('[')
-            if(batch == 'Io_Pilot_2_Batch_1_100_Elec_App_Sports_Music_Decor'):
-                raise Exception('Upss')
+            
             while next_token:
                 params = {
                     'next_token': '' if next_token == True else next_token,
