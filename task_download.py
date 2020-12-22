@@ -9,7 +9,7 @@ from datetime import datetime
 # constants
 BATCH_URL = 'https://api.scale.com/v1/batches'
 TASK_URL = 'https://api.scale.com/v1/tasks'
-MAX_WORKERS = 200
+MAX_WORKERS = 25
 
 # globals
 auth = None
@@ -18,14 +18,12 @@ batch_total = 0
 batch_count = 0
 task_count = 0
 error_batches = []
+batch_params = {'status': 'completed'}
+task_params = {'status': 'completed'}
 
 # create logs and batches directories
-if not os.path.isdir('task_download'):
-    os.mkdir('task_download')
-if not os.path.isdir('task_download/logs'):
-    os.mkdir('task_download/logs')
-if not os.path.isdir('task_download/batches'):
-    os.mkdir('task_download/batches')
+os.makedirs('task_download/logs', exist_ok=True)
+os.makedirs('task_download/batches', exist_ok=True)
 
 # logger
 logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
@@ -37,12 +35,15 @@ logger.addHandler(logging.FileHandler(
 
 
 def main():
-    global batch_total, auth, project
+    global batch_total, auth, project, batch_params
 
     args = get_args()
     auth = (args.api_key, '')
     resume = args.resume
     project = args.project
+
+    if project:
+        batch_params['project'] = project
 
     batches = get_batches()
     batch_total = len(batches)
@@ -65,22 +66,23 @@ def main():
     if(len(error_batches)):
         error(f'Error batches: {error_batches}')
         error(
-            f'There were errors downloading {len(error_batches)} batches, to retry run the script with the --resume flag')
+            f'There were errors downloading {len(error_batches)} batches, to retry, run the script with the --resume flag')
 
 
 def get_batches():
+    global batch_params
+
     batches = []
     has_next_page = True
     next_page = 1
+
     info('Getting batch pages...')
     try:
         while has_next_page:
-            params = {'status': 'completed', 'offset': (next_page - 1) * 100}
-            if project:
-                params['project'] = project
+            batch_params['offset'] = (next_page - 1) * 100
 
-            print(params)
-            res = requests.get(BATCH_URL, auth=auth, params=params).json()
+            res = requests.get(BATCH_URL, auth=auth,
+                               params=batch_params).json()
 
             info(f'Getting batch page {next_page}/{res.get("totalPages")}')
 
@@ -109,17 +111,27 @@ def get_tasks(batch):
 
             while next_token:
                 params = {
+                    **task_params,
                     'next_token': '' if next_token == True else next_token,
                     'batch': batch
                 }
-                res = requests.get(TASK_URL, auth=auth, params=params).json()
+
+                res = requests.get(TASK_URL, auth=auth,
+                                   params=params).json()
 
                 next_token = res.get('next_token')
                 tasks = res.get('docs')
                 task_count += len(tasks)
 
                 for task in tasks:
-                    f.write(f'{json.dumps(task, indent=2)},')
+                    dump_task = {
+                        'type': task['type'],
+                        'project': task['project'],
+                        'batch': task['batch'],
+                        'params': {'attachment': task['params']['attachment']},
+                        'response': task['response']
+                    }
+                    f.write(f'{json.dumps(dump_task, indent=2)},')
 
             f.write(']')
 
