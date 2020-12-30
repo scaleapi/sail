@@ -26,14 +26,14 @@ def create(client, project, batches, tasks):
         # Add Project and if applicable, Batch Mapping
         desired_task['project'] = project['name']
         if batches is not None and len(batches['batches']) == 1:
-            desired_task['batch'] = batches['batches'][0]['name']
+            desired_task['batch'] = batches['batches'][0]
 
         # Consider Idempotency
         #  - Goal is to build a unique key that represents this unit of work, may make sense to tweak given task type / other data
         custom_headers = {}
         if (tasks.get('useIdempotency', False)):
             key = f"{desired_task['project']}_{desired_task.get('batch','')}_{desired_task.get('attachment', desired_task.get('attachments'))}"
-            custom_headers['Idempotency-Key'] = key.encode('utf-8')
+            custom_headers['Idempotency-Key'] = key
 
         # Try and create the Task
         task_creation_res = client.makeScaleRequest("POST", f"https://api.scale.com/v1/task/{project['type']}/", json=desired_task, custom_headers=custom_headers)
@@ -41,16 +41,16 @@ def create(client, project, batches, tasks):
         # See if we were successful
         if (task_creation_res.status_code == 200):
             task_res = task_creation_res.json()
-            return f"Task `{task_res['task_id']}` has been created, attachment = {desired_task.get('attachment', desired_task.get('attachments'))}"
+            return f"Task `{task_res['task_id']}` has been created, attachment = {desired_task['attachment']}"
         elif (task_creation_res.status_code == 429):
             return f"Task `{desired_task['name']}` already exists based on Idempotency"
         else:
             # Try again if retry > 0
             if (num_retries > 0):
-                print(f"Task creation for `{desired_task.get('attachment', desired_task.get('attachments'))}` failed with status code {task_creation_res.status_code}, trying {num_retries-1} more times")
+                print(f"Task creation for `{desired_task['attachment']}` failed with status code {task_creation_res.status_code}, trying {num_retries-1} more times")
                 create_task(desired_task, num_retries-1)
             else: 
-                raise(Exception(f"Exiting script, batch creation for {desired_task.get('attachment', desired_task.get('attachments'))} failed"))
+                raise(Exception(f"Exiting script, batch creation for {desired_task['attachment']} failed"))
 
     counter = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=client.concurrency_limit) as executor:
