@@ -125,6 +125,7 @@ def get_tasks(batch):
 
                 for task in tasks:
                     dump_task = {
+                        'task_id': task['task_id'],
                         'type': task['type'],
                         'project': task['project'],
                         'batch': task['batch'],
