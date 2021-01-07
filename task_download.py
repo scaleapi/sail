@@ -18,7 +18,8 @@ batch_total = 0
 batch_count = 0
 task_count = 0
 error_batches = []
-batch_params = {'status': 'completed'}
+# batch_params = {'status': 'completed'}
+batch_params = {}
 task_params = {'status': 'completed'}
 
 # create logs and batches directories
@@ -123,7 +124,7 @@ def get_tasks(batch):
                 tasks = res.get('docs')
                 task_count += len(tasks)
 
-                for task in tasks:
+                for i, task in enumerate(tasks):
                     dump_task = {
                         'task_id': task['task_id'],
                         'type': task['type'],
@@ -132,7 +133,11 @@ def get_tasks(batch):
                         'params': {'attachment': task['params']['attachment']},
                         'response': task['response']
                     }
-                    f.write(f'{json.dumps(dump_task, indent=2)},')
+                    # last task in array is written in file without comma for a proper json format
+                    if not next_token and i == len(tasks)-1:
+                        f.write(f'{json.dumps(dump_task, indent=2)}')
+                    else:
+                        f.write(f'{json.dumps(dump_task, indent=2)},')
 
             f.write(']')
 
