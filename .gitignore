@@ -138,5 +138,4 @@ dmypy.json
 cython_debug/
 
 # task_download batches and logs
-task_download/batches/
-task_download/logs/
+task_download/
