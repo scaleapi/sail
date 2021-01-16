@@ -22,6 +22,12 @@ error_batches = []
 batch_params = {}
 task_params = {'status': 'completed'}
 
+# logger
+logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
+    info = logging.info
+    error = logging.error
+    logger = logging.getLogger()
+
 def main():
     global batch_total, auth, project, batch_params
 
@@ -35,11 +41,7 @@ def main():
     os.makedirs(f'{output_dir}/logs', exist_ok=True)
     os.makedirs(f'{output_dir}/batches', exist_ok=True)
 
-    # logger
-    logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
-    info = logging.info
-    error = logging.error
-    logger = logging.getLogger()
+    # logger output location
     logger.addHandler(logging.FileHandler(
         f'{output_dir}/logs/{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'))
 
