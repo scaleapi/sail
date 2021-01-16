@@ -22,19 +22,6 @@ error_batches = []
 batch_params = {}
 task_params = {'status': 'completed'}
 
-# create logs and batches directories
-os.makedirs('task_download/logs', exist_ok=True)
-os.makedirs('task_download/batches', exist_ok=True)
-
-# logger
-logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
-info = logging.info
-error = logging.error
-logger = logging.getLogger()
-logger.addHandler(logging.FileHandler(
-    f'task_download/logs/{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'))
-
-
 def main():
     global batch_total, auth, project, batch_params
 
@@ -42,6 +29,19 @@ def main():
     auth = (args.api_key, '')
     resume = args.resume
     project = args.project
+    output_dir = args.dir
+
+    # create logs and batches directories
+    os.makedirs(f'{output_dir}/logs', exist_ok=True)
+    os.makedirs(f'{output_dir}/batches', exist_ok=True)
+
+    # logger
+    logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
+    info = logging.info
+    error = logging.error
+    logger = logging.getLogger()
+    logger.addHandler(logging.FileHandler(
+        f'{output_dir}/logs/{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'))
 
     if project:
         batch_params['project'] = project
@@ -158,6 +158,7 @@ def get_args():
     ap.add_argument('--api-key', required=True)
     ap.add_argument('--resume', action='store_true')
     ap.add_argument('--project')
+    ap.add_argument('--dir', default='task_download')
     return ap.parse_args()
 
 

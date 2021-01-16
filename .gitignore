@@ -139,3 +139,5 @@ cython_debug/
 
 # task_download batches and logs
 task_download/
+
+.DS_Store
