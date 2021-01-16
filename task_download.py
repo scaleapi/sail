@@ -28,8 +28,9 @@ info = logging.info
 error = logging.error
 logger = logging.getLogger()
 
+
 def main():
-    global batch_total, auth, project, batch_params
+    global output_dir, batch_total, auth, project, batch_params
 
     args = get_args()
     auth = (args.api_key, '')
@@ -72,87 +73,87 @@ def main():
             f'There were errors downloading {len(error_batches)} batches, to retry, run the script with the --resume flag')
 
 
-    def get_batches():
-        global batch_params
+def get_batches():
+    global batch_params
 
-        batches = []
-        has_next_page = True
-        next_page = 1
+    batches = []
+    has_next_page = True
+    next_page = 1
 
-        info('Getting batch pages...')
-        try:
-            while has_next_page:
-                batch_params['offset'] = (next_page - 1) * 100
+    info('Getting batch pages...')
+    try:
+        while has_next_page:
+            batch_params['offset'] = (next_page - 1) * 100
 
-                res = requests.get(BATCH_URL, auth=auth,
-                                params=batch_params).json()
+            res = requests.get(BATCH_URL, auth=auth,
+                               params=batch_params).json()
 
-                info(f'Getting batch page {next_page}/{res.get("totalPages")}')
+            info(f'Getting batch page {next_page}/{res.get("totalPages")}')
 
-                has_next_page = res.get('hasNextPage')
-                next_page = res.get('nextPage')
+            has_next_page = res.get('hasNextPage')
+            next_page = res.get('nextPage')
 
-                for batch in res.get('docs'):
-                    batches.append(batch['name'])
-        except Exception:
-            logging.exception(
-                "Exception occurred while downloading batch pages, please try again")
-            quit()
+            for batch in res.get('docs'):
+                batches.append(batch['name'])
+    except Exception:
+        logging.exception(
+            "Exception occurred while downloading batch pages, please try again")
+        quit()
 
-        return batches
+    return batches
 
 
-    def get_tasks(batch):
-        global batch_count, task_count, error_batches
+def get_tasks(batch):
+    global output_dir, batch_count, task_count, error_batches
 
-        file_name = f'{output_dir}/batches/{batch}.json'
-        next_token = True
+    file_name = f'{output_dir}/batches/{batch}.json'
+    next_token = True
 
-        try:
-            with open(file_name, "w") as f:
-                f.write('[')
+    try:
+        with open(file_name, "w") as f:
+            f.write('[')
 
-                while next_token:
-                    params = {
-                        **task_params,
-                        'next_token': '' if next_token == True else next_token,
-                        'batch': batch
+            while next_token:
+                params = {
+                    **task_params,
+                    'next_token': '' if next_token == True else next_token,
+                    'batch': batch
+                }
+
+                res = requests.get(TASK_URL, auth=auth,
+                                   params=params).json()
+
+                next_token = res.get('next_token')
+                tasks = res.get('docs')
+                task_count += len(tasks)
+
+                for i, task in enumerate(tasks):
+                    dump_task = {
+                        'task_id': task['task_id'],
+                        'type': task['type'],
+                        'project': task['project'],
+                        'batch': task['batch'],
+                        'params': {'attachment': task['params']['attachment']},
+                        'response': task['response']
                     }
+                    # last task in array is written in file without comma for a proper json format
+                    if not next_token and i == len(tasks)-1:
+                        f.write(f'{json.dumps(dump_task, indent=2)}')
+                    else:
+                        f.write(f'{json.dumps(dump_task, indent=2)},')
 
-                    res = requests.get(TASK_URL, auth=auth,
-                                    params=params).json()
+            f.write(']')
 
-                    next_token = res.get('next_token')
-                    tasks = res.get('docs')
-                    task_count += len(tasks)
+        batch_count += 1
 
-                    for i, task in enumerate(tasks):
-                        dump_task = {
-                            'task_id': task['task_id'],
-                            'type': task['type'],
-                            'project': task['project'],
-                            'batch': task['batch'],
-                            'params': {'attachment': task['params']['attachment']},
-                            'response': task['response']
-                        }
-                        # last task in array is written in file without comma for a proper json format
-                        if not next_token and i == len(tasks)-1:
-                            f.write(f'{json.dumps(dump_task, indent=2)}')
-                        else:
-                            f.write(f'{json.dumps(dump_task, indent=2)},')
-
-                f.write(']')
-
-            batch_count += 1
-
-            info(
-                f'Finished batch {batch} ({batch_count}/{batch_total}) | Task sum: {task_count}')
-        except Exception:
-            if os.path.isfile(file_name):
-                os.remove(file_name)
-            logging.exception(
-                f'Exception occurred while downloading batch {batch}')
-            error_batches.append(batch)
+        info(
+            f'Finished batch {batch} ({batch_count}/{batch_total}) | Task sum: {task_count}')
+    except Exception:
+        if os.path.isfile(file_name):
+            os.remove(file_name)
+        logging.exception(
+            f'Exception occurred while downloading batch {batch}')
+        error_batches.append(batch)
 
 
 def get_args():
