@@ -56,7 +56,7 @@ def main():
     futures = []
     threadpool = ThreadPoolExecutor(max_workers=MAX_WORKERS)
     for batch in batches:
-        if resume and os.path.isfile(f'task_download/batches/{batch}.json'):
+        if resume and os.path.isfile(f'{output_dir}/batches/{batch}.json'):
             batch_total -= 1
             info(f'Skipping batch {batch} since --resume flag was used')
         else:
@@ -105,7 +105,7 @@ def get_batches():
 def get_tasks(batch):
     global batch_count, task_count, error_batches
 
-    file_name = f'task_download/batches/{batch}.json'
+    file_name = f'{output_dir}/batches/{batch}.json'
     next_token = True
 
     try:
