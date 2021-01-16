@@ -24,9 +24,9 @@ task_params = {'status': 'completed'}
 
 # logger
 logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
-    info = logging.info
-    error = logging.error
-    logger = logging.getLogger()
+info = logging.info
+error = logging.error
+logger = logging.getLogger()
 
 def main():
     global batch_total, auth, project, batch_params
