@@ -18,19 +18,18 @@ We've done our best to abstract the data pipeline nuances and incorporate Scale 
 - `API_KEY` environment variable must be set.
 - Modify files under `example_schema`.
 - Run the main sail script `API_KEY=live_xxx python sail.py`.
+
 # Schema
 Runing `sail.py` will create a project with batches and tasks.
 
 Detailed info on these entitites can be found on Scale Docs:
 
-- Project: <link to docs>
-- Batch: <link to docs>
-- Task: <link to docs>
-linkear a scale docs
+- Project: https://docs.scale.com/reference#projects
+- Batch: https://docs.scale.com/reference#batches
+- Task: https://docs.scale.com/reference#task-object
 
 # Idempotency
 There's a highly recommended, yet optional, field called `unique_id`. It will prevent the creation of duplicated tasks.
-
 
 It can be set at the task level manually. Or, using the flag `generateUniqueId`, all tasks missing the `unique_id` field will generate one in the form of `<project_name>_<batch_name>_<attachment_url>`.
 
