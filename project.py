@@ -1,8 +1,9 @@
-import requests
-from requests.auth import HTTPBasicAuth
 import json
 
+
 def upsert(client, desired_project):
+
+    print("\nCreating Project...")
 
     projectParams = desired_project.copy()
     projectParams.pop('name', None)
@@ -11,7 +12,7 @@ def upsert(client, desired_project):
     current_project = None
 
     # Fetch this project
-    project_res = client.makeScaleRequest("GET", f"https://api.scale.com/v1/projects/{desired_project['name']}")
+    project_res = client.get_project(desired_project['name'])
 
     if (project_res.status_code == 404):
         print("Project not found, creating it now...")
@@ -22,15 +23,15 @@ def upsert(client, desired_project):
             "params": projectParams
         }
 
-        prj_creation_res = client.makeScaleRequest("POST", "https://api.scale.com/v1/projects/", json=project_json)
+        prj_creation_res = client.create_project(project_json)
 
         if (prj_creation_res.status_code != 200):
-            print("Exiting script, Could not create Project")
+            print("❌ Could not create Project, exiting script")
             prj_creation_res.raise_for_status()
         else:
             # A bit hacky but garaunteed to be true
             print(
-                f"Successfully created project `{desired_project['name']}` with version 0"
+                f"✅ Successfully created project '{desired_project['name']}' with version 0"
             )
 
     elif (project_res.status_code == 200):
@@ -41,7 +42,7 @@ def upsert(client, desired_project):
         if (current_project['type'] != desired_project['type']):
             print(
                 f"Project Schema has type '{desired_project['type']}' but this project has type '{current_project['type']}' - Project Types cannot be updated")
-            raise(Exception("Exiting script, Project Version Mismatch"))
+            raise(Exception("❌ Project Version Mismatch, exiting script"))
 
         # Second, most of our project details will sit in the `paramHistory`, let's check our schema keys against what's in the latest param history
         projectNeedsUpdate = False
@@ -50,18 +51,21 @@ def upsert(client, desired_project):
             if not (key in latestParamHistory and latestParamHistory[key] == desired_project[key]):
                 print(f"Difference in project detected | Key: `{key}`")
                 print("Desired:")
-                print(json.dumps(desired_project[key], sort_keys=True, indent=2))
+                print(json.dumps(
+                    desired_project[key], sort_keys=True, indent=2))
                 print("")
                 print("Existing:")
                 print(json.dumps(latestParamHistory.get(
                     key, '<Not Specified>'), sort_keys=True, indent=2))
                 projectNeedsUpdate = True
 
-        if (projectNeedsUpdate):        
+        if (projectNeedsUpdate):
             # Create a new project version
-            param_history_res = client.makeScaleRequest("POST", f"https://api.scale.com/v1/projects/{desired_project['name']}/setParams", json=projectParams)
+            param_history_res = client.request(
+                "POST", f"https://api.scale.com/v1/projects/{desired_project['name']}/setParams", json=projectParams)
             if (param_history_res.status_code != 200):
-                raise(Exception(f"Error {param_history_res.status_code} | Exiting script, Could not update Project"))
+                raise(Exception(
+                    f"Error {param_history_res.status_code} | Exiting script, Could not update Project"))
             else:
                 # A bit hacky but garaunteed to be true
                 print(
@@ -70,5 +74,6 @@ def upsert(client, desired_project):
             print(
                 f"Project `{desired_project['name']}` found, current version already matches schema")
     else:
-        print(f"Project retrieval returned error code: {project_res.status_code}")
+        print(
+            f"Project retrieval returned error code: {project_res.status_code}")
         raise(Exception("Exiting script, Project Retrieval Failed"))

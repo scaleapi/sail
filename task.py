@@ -1,59 +1,74 @@
-import concurrent.futures
-import threading
 import csv
+import json
+
 
 def create(client, project, batches, tasks):
-    print("Creating Tasks...")
+    print("\nCreating Tasks...")
 
     tasks_to_create = []
-    # Populate list of Tasks from List, .csv, a URL, etc.
 
+    # Load tasks from the schema list
     if ('list' in tasks):
         tasks_to_create.extend(tasks['list'])
 
+    # Load tasks from CSV files
     if ('csv' in tasks):
-        for f in tasks['csv']:
-            tasks_to_create.extend(csv.DictReader(open(f['filename'])))
+        for filename in tasks['csv']:
+            tasks_to_create.extend(csv.DictReader(open(filename)))
 
-    # TODO: Add support for .json import
+    # Load tasks from JSON files
+    if ('json' in tasks):
+        for filename in tasks['json']:
+            tasks_to_create.extend(json.load(open(filename)))
 
     # TODO: Add support for folder import
 
-    NUM_TASKS = len(tasks_to_create)
+    def create_task(task, num_retries=3):
 
-    def create_task(desired_task, num_retries = 3):
+        attachment = task.get('attachment', task.get('attachments'))
 
-        # Add Project and if applicable, Batch Mapping
-        desired_task['project'] = project['name']
+        # Add project
+        task['project'] = project['name']
+
+        # If applicable, add batch
         if batches is not None and len(batches['batches']) == 1:
-            desired_task['batch'] = batches['batches'][0]['name']
+            task['batch'] = batches['batches'][0]['name']
 
-        # Consider Idempotency
-        #  - Goal is to build a unique key that represents this unit of work, may make sense to tweak given task type / other data
-        custom_headers = {}
-        if (tasks.get('useIdempotency', False)):
-            key = f"{desired_task['project']}_{desired_task.get('batch','')}_{desired_task.get('attachment', desired_task.get('attachments'))}"
-            custom_headers['Idempotency-Key'] = key.encode('utf-8')
+        # If applicable, add unique_id
+        if not task.get('unique_id') and tasks.get('generateUniqueId', False):
+            if task.get('batch'):
+                task['unique_id'] = f"{task['project']}_{task['batch']}_{attachment}"
+            else:
+                task['unique_id'] = f"{task['project']}_{attachment}"
 
-        # Try and create the Task
-        task_creation_res = client.makeScaleRequest("POST", f"https://api.scale.com/v1/task/{project['type']}/", json=desired_task, custom_headers=custom_headers)
+        # Try and create the task
+        res = client.create_task(project['type'], task)
 
         # See if we were successful
-        if (task_creation_res.status_code == 200):
-            task_res = task_creation_res.json()
-            return f"Task `{task_res['task_id']}` has been created, attachment = {desired_task.get('attachment', desired_task.get('attachments'))}"
-        elif (task_creation_res.status_code == 429):
-            return f"Task `{desired_task['name']}` already exists based on Idempotency"
-        else:
-            # Try again if retry > 0
-            if (num_retries > 0):
-                print(f"Task creation for `{desired_task.get('attachment', desired_task.get('attachments'))}` failed with status code {task_creation_res.status_code}, trying {num_retries-1} more times")
-                create_task(desired_task, num_retries-1)
-            else: 
-                raise(Exception(f"Exiting script, batch creation for {desired_task.get('attachment', desired_task.get('attachments'))} failed"))
+        if (res.status_code == 200):
+            task_res = res.json()
+            return f"✅ Successfully created task {task_res['task_id']} with attachment '{attachment}'"
 
-    counter = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=client.concurrency_limit) as executor:
-        for output in executor.map(create_task, tasks_to_create):
-            counter += 1
-            print(f"{'{:6d}'.format(counter)}/{NUM_TASKS} | {output}")
+        elif (res.status_code == 409):
+            return f"✅ Task with unique_id '{task['unique_id']}' already exists, skipping"
+
+        else:
+            return f"❌ Task creation for '{attachment}' failed with response {res.json()}"
+
+            # TODO:
+            # - Retrying here doesn't seem to solve common issues
+            # - Scale API error details wasn't been shown to the user
+            # - Retries for connections errors could be implemented on client.py for all requests
+            # - Now showing Scale error to help fix the payload, and then the retry is done by runing the script again
+            # - For this workflow to make sense, a --finalize-batches flag could be added to the script to allow multiple runs while fixing task payload
+            #
+            # # Try again if retry > 0
+            # if (num_retries > 0):
+            #     print(
+            #         f"Task creation for `{attachment}` failed with status code {res.status_code}, trying {num_retries-1} more times")
+            #     create_task(task, num_retries-1)
+            # else:
+            #     raise(Exception(
+            #         f"Exiting script, batch creation for {attachment} failed"))
+
+    client.execute(create_task, tasks_to_create)

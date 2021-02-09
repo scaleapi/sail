@@ -1,26 +1,20 @@
-import concurrent.futures
-import threading
-
 def upsert(client, project_name, batches):
-    
-    print("Creating Batches...")
 
-    NUM_BATCHES = len(batches['batches'])
+    print("\nCreating Batches...")
 
-    def upsert_batch(desired_batch, num_retries = 3):
+    def upsert_batch(desired_batch, num_retries=3):
         desired_batch['project'] = project_name
-        
-        batch_res = client.makeScaleRequest("GET", f"https://api.scale.com/v1/batches/{desired_batch['name']}")
+
+        batch_res = client.get_batch(desired_batch['name'])
 
         if (batch_res.status_code == 404):
-            print("Batch not found, creating it now...")
-    
-            batch_creation_res = client.makeScaleRequest("POST", f"https://api.scale.com/v1/batches/", json=desired_batch)
+            batch_creation_res = client.create_batch(desired_batch)
             if (batch_creation_res.status_code != 200):
-                print(f"Exiting script, could not create Batch `{desired_batch['name']}`")
+                print(
+                    f"❌ Exiting script, could not create Batch `{desired_batch['name']}`")
                 batch_creation_res.raise_for_status()
             else:
-                return f"Successfully created batch `{desired_batch['name']}`"
+                return f"✅ Successfully created batch `{desired_batch['name']}`"
 
         elif (batch_res.status_code == 200):
             # Batch already exists
@@ -28,52 +22,57 @@ def upsert(client, project_name, batches):
 
             # Validate Batch is still in `staging` mode
             if (not batches.get('batchStatusOverride', False) and current_batch['status'] != 'staging'):
-                raise(Exception(f"Trying to submit to a non-staging batch, `{desired_batch['name']}` is in status `{current_batch['status']}` | Exiting now"))
+                raise(Exception(
+                    f"❌ Trying to submit to a non-staging batch, `{desired_batch['name']}` is in status `{current_batch['status']}` | Exiting now"))
 
-            return f"Batch `{desired_batch['name']}` already exists"
+            return f"✅ Batch '{desired_batch['name']}' already exists, skipping"
 
         else:
-            # Try again if retry > 0
-            if (num_retries > 0):
-                print(f"Batch creation for `{desired_batch['name']}` failed with status code {batch_res.status_code}, trying {num_retries-1} more times")
-                upsert_batch(desired_batch, num_retries-1)
-            else: 
-                raise(Exception(f"Exiting script, batch creation for {desired_batch['name']} failed"))
+            return f"❌ Batch creation for '{desired_batch['name']}' failed with response {batch_res.json()}"
 
-    counter = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=client.concurrency_limit) as executor:
-        for output in executor.map(upsert_batch, batches['batches']):
-            counter += 1
-            print(f"{'{:6d}'.format(counter)}/{NUM_BATCHES} | {output}")
+            # TODO: Same as Task, return error resposne from Scale so the user can fix the payload instad of retrying
+            #
+            # # Try again if retry > 0
+            # if (num_retries > 0):
+            #     print(
+            #         f"Batch creation for `{desired_batch['name']}` failed with status code {batch_res.status_code}, trying {num_retries-1} more times")
+            #     upsert_batch(desired_batch, num_retries-1)
+            # else:
+            #     raise(Exception(
+            #         f"Exiting script, batch creation for {desired_batch['name']} failed"))
+
+    client.execute(upsert_batch, batches['batches'])
+
 
 def finalize(client, batches):
-    print("Finalizing Batches...")
+    print("\nFinalizing Batches...")
 
-    NUM_BATCHES = len(batches['batches'])
+    def finalize_batch(batch, num_retries=3):
 
-    def finalize_batch(desired_batch, num_retries = 3):
+        batch_name = batch["name"]
 
         # See if this batch was already finalized (finalizing again gives bad request)
-        batch_res = client.makeScaleRequest("GET", f"https://api.scale.com/v1/batches/{desired_batch['name']}")
+        with client.get_batch(batch_name) as res:
+            if (res.status_code == 200 and res.json()['status'] == 'in_progress'):
+                return f"✅ Batch '{batch_name}' was already finalized"
 
-        if (batch_res.status_code == 200 and batch_res.json()['status'] == 'in_progress'):
-            return f"Batch `{desired_batch['name']}` was already finalized"
+        # Try and finalize the batch
+        with client.finalize_batch(batch_name) as res:
 
-        # Need to try and finalize the batch
-        batch_finalization_res = client.makeScaleRequest("POST", f"https://api.scale.com/v1/batches/{desired_batch['name']}/finalize")
-        # See if we were successful
-        if (batch_finalization_res.status_code == 200):
-            return f"Batch `{desired_batch['name']}` has been finalized"
-        else:
-            # Try again if retry > 0
-            if (num_retries > 0):
-                print(f"Batch creation for `{desired_batch['name']}` failed with status code {batch_finalization_res.status_code}, trying {num_retries-1} more times")
-                finalize_batch(desired_batch, num_retries-1)
-            else: 
-                raise(Exception(f"Exiting script, batch creation for {desired_batch['name']} failed"))
+            if (res.status_code == 200):
+                return f"✅ Succesfuly finalized batch '{batch_name}'"
+            else:
+                return f"❌ Attempt to finalize batch '{desired_batch['name']}' failed with response {res.json()}"
 
-    counter = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=client.concurrency_limit) as executor:
-        for output in executor.map(finalize_batch, batches['batches']):
-            counter += 1
-            print(f"{'{:6d}'.format(counter)}/{NUM_BATCHES} | {output}")
+                # TODO: Same as Task, return error resposne from Scale so the user can fix the payload instad of retrying
+                #
+                # Try again if retry > 0
+                # if (num_retries > 0):
+                #     print(
+                #         f"Batch creation for `{batch_name}` failed with status code {batch_finalization_res.status_code}, trying {num_retries-1} more times")
+                #     finalize_batch(desired_batch, num_retries-1)
+                # else:
+                #     raise(Exception(
+                #         f"Exiting script, batch creation for {batch_name} failed"))
+
+    client.execute(finalize_batch, batches['batches'])
