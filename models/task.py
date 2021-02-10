@@ -3,7 +3,8 @@ import json
 
 
 def create(client, project, batches, tasks):
-    print("\nCreating Tasks...")
+    print("\n\nCreating Tasks...")
+    print("=================")
 
     tasks_to_create = []
 

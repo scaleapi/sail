@@ -1,19 +1,16 @@
 import json
 import os
-
-import project
-import batch
-import task
-import schema_validation
 from argparse import ArgumentParser
-from client import Sail
-from example_schema.schema import schema
+from helpers import schema_validation
+from helpers.client import Sail
+from models import project, batch, task
+from example_schemas.schema import schema
 
 
 def main():
-    # Specify your API Key, live_xxxxxxxxx
+    # Specify your API Key, test_xxxx or live_xxxx
     if 'API_KEY' not in os.environ:
-        raise(Exception(f"Missing `API_KEY` as Environment Variable"))
+        raise(Exception(f"❌ Missing API_KEY as environment variable\n"))
 
     # Load args
     args = get_args()
@@ -48,7 +45,9 @@ def get_args():
 
 
 if __name__ == "__main__":
+    print("")
     main()
+    print("\n")
 
 
 # TODOS:

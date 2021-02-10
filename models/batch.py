@@ -1,6 +1,7 @@
 def upsert(client, project_name, batches):
 
-    print("\nCreating Batches...")
+    print("\n\nCreating Batches...")
+    print("===================")
 
     def upsert_batch(desired_batch, num_retries=3):
         desired_batch['project'] = project_name
@@ -45,7 +46,8 @@ def upsert(client, project_name, batches):
 
 
 def finalize(client, batches):
-    print("\nFinalizing Batches...")
+    print("\n\nFinalizing Batches...")
+    print("=====================")
 
     def finalize_batch(batch, num_retries=3):
 
@@ -54,7 +56,7 @@ def finalize(client, batches):
         # See if this batch was already finalized (finalizing again gives bad request)
         with client.get_batch(batch_name) as res:
             if (res.status_code == 200 and res.json()['status'] == 'in_progress'):
-                return f"✅ Batch '{batch_name}' was already finalized"
+                return f"✅ Batch '{batch_name}' was already finalized, skipping"
 
         # Try and finalize the batch
         with client.finalize_batch(batch_name) as res:

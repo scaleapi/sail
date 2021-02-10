@@ -5,7 +5,7 @@ schema = {
         # Required, the task type for this project
         "type": "imageannotation",
         # Required, can use text, markdown, or embedded google doc
-        "instruction": "Mark all bikes and cars on the image.",
+        "instruction": "Mark all bikes and cars on the image",
         # Required, but can be just "https://www.example.com/callback"
         "callback_url": "https://www.example.com/callback",
         # Geometries to annotatie in the attachment image
@@ -13,7 +13,8 @@ schema = {
             "box": {
                 "objects_to_annotate": [
                     "Bike",
-                    "Car"
+                    "Car",
+                    "Pedestrians"
                 ]
             }
         }
@@ -55,10 +56,10 @@ schema = {
             }
         ],
         "csv": [
-            "example_schema/tasks.csv"
+            "example_schemas/tasks.csv"
         ],
         "json": [
-            "example_schema/tasks.json"
+            "example_schemas/tasks.json"
         ],
         # Recommended safety precaution to avoid duplicates.
         # If set to True, a unique_id will be generated for each task

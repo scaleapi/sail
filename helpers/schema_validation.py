@@ -1,6 +1,7 @@
 def validate(schema):
 
     print("\nValidating schema...")
+    print("====================")
 
     if ("project" not in schema):
         raise(Exception(
@@ -18,3 +19,9 @@ def validate(schema):
         if ('batches' not in schema['batches'] or not isinstance(schema['batches']['batches'], list)):
             raise(Exception(
                 "Batches must have an array of batches inside of it | Exiting script, schema Validation Failed"))
+
+    log("✅ Succesfully validated schema")
+
+
+def log(string):
+    print(f"{'{:11s}'.format('')}{string}")

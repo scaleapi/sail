@@ -13,17 +13,21 @@ It's meant to have the following included:
 
 We've done our best to abstract the data pipeline nuances and incorporate Scale best practices throughout
 
-# How to start
+# Getting started
 - Python 3.6+ is required to run these scripts.
 - `API_KEY` environment variable must be set.
-- Modify files under `example_schema`.
-- Run the main sail script `API_KEY=live_xxx python sail.py`.
+- Modify files under `example_schema`. TODO: explain in more detail
+- Run the main sail script `API_KEY=live_xxx python sail.py`. TODO: mention test vs live API usage
+
+TODO: move models to folders
+TODO: create a simple schema with batches, and mention it here
 
 # Schema
 Runing `sail.py` will create a project with batches and tasks.
 
 Detailed info on these entitites can be found on Scale Docs:
 
+- Scale 101: TODO: fill url
 - Project: https://docs.scale.com/reference#projects
 - Batch: https://docs.scale.com/reference#batches
 - Task: https://docs.scale.com/reference#task-object

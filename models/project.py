@@ -3,7 +3,8 @@ import json
 
 def upsert(client, desired_project):
 
-    print("\nCreating Project...")
+    print("\n\nCreating Project...")
+    print("===================")
 
     projectParams = desired_project.copy()
     projectParams.pop('name', None)
@@ -15,7 +16,7 @@ def upsert(client, desired_project):
     project_res = client.get_project(desired_project['name'])
 
     if (project_res.status_code == 404):
-        print("Project not found, creating it now...")
+        print("✅ Project not found, creating it now...")
 
         project_json = {
             "name": desired_project['name'],
@@ -49,7 +50,7 @@ def upsert(client, desired_project):
         latestParamHistory = current_project['param_history'][-1]
         for key in filter(lambda key: key not in ['name', 'type'], desired_project.keys()):
             if not (key in latestParamHistory and latestParamHistory[key] == desired_project[key]):
-                print(f"Difference in project detected | Key: `{key}`")
+                print(f"\n❕ Difference in project detected for key '{key}'")
                 print("Desired:")
                 print(json.dumps(
                     desired_project[key], sort_keys=True, indent=2))
@@ -65,15 +66,17 @@ def upsert(client, desired_project):
                 "POST", f"https://api.scale.com/v1/projects/{desired_project['name']}/setParams", json=projectParams)
             if (param_history_res.status_code != 200):
                 raise(Exception(
-                    f"Error {param_history_res.status_code} | Exiting script, Could not update Project"))
+                    f"❌ Error {param_history_res.status_code} | Exiting script, Could not update Project"))
             else:
                 # A bit hacky but garaunteed to be true
-                print(
-                    f"Successfully updated project to version {len(current_project['param_history'])}")
+                log(
+                    f"✅ Successfully updated project to version {len(current_project['param_history'])}")
         else:
-            print(
-                f"Project `{desired_project['name']}` found, current version already matches schema")
+            log(
+                f"✅ Project '{desired_project['name']}' found with matching schema, skipping")
     else:
-        print(
-            f"Project retrieval returned error code: {project_res.status_code}")
-        raise(Exception("Exiting script, Project Retrieval Failed"))
+        raise(Exception(f"❌ Error retreiving project {project_res.json()}\n"))
+
+
+def log(string):
+    print(f"{'{:11s}'.format('')}{string}")
