@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from helpers import schema_validation
 from helpers.client import Sail
 from models import project, batch, task
-from example_schemas.schema import schema
+from example_schemas.schema_with_batches import schema
 
 
 def main():
