@@ -6,7 +6,7 @@ It's meant to have the following included:
 
 - Project level Pipeline Config (with versioning abstracted)
 - Batch Creation and Finalization (both Easy and Complex cases)
-- Task Creation based on a .csv mapping, .json file, or just a Python Dictionary, longer term goal to support passing in a folder location or S3 bucket URI
+- Task Creation based on a .csv mapping, .json file, or just a Python Dictionary. A longer-term goal is to support passing in a folder location or S3 Bucket URI.
 - Concurrency for every operation so scripts can run ~30x faster
 - Logging built-in
 - Error Handling and retries on every part + Idempotency for Task creation
@@ -16,23 +16,23 @@ We've done our best to abstract the data pipeline nuances and incorporate Scale 
 # Getting started
 - Python 3.6+ is required to run these scripts.
 - `API_KEY` environment variable must be set.
-- Modify `example_schemas/schema.py`. It's an example python dict describing the project and tasks to be created. It has comments on what each field is, and more detailed documentation can be found in the [Schema Section](#Schema).
+- Modify `example_schemas/schema.py`. It's an example Python dictionary describing the project and tasks to be created. It has comments on what each field is, and more detailed documentation can be found in the [Schema Section](#Schema).
 - Run the main Sail script. A __Test API Key__ can be used to try out the API and the platform. When ready to create a production project, just switch to a __Live API Key__:
 ```shell
 API_KEY=live_xxx python sail.py
 ```
 
 # Working with batches
-For large projects, batches can be created in order to group tasks between the same project. Ther's an example schema on `example_schemas/schema_with_batches.py`.
+For large projects, batches can be created to group tasks between the same project. There's an example schema on `example_schemas/schema_with_batches.py`.
 
 More detailed documentation can be found in the [Schema Section](#Schema)
 
 Also, there's a [recommended workflow](#recommended-workflow) for working with batches.
 
 # Schema
-Runing `sail.py` will create a project with batches and tasks.
+Running `sail.py` will create a project with batches and tasks.
 
-Detailed info on these entitites and how Scale works can be found on Scale Docs:
+Detailed info on these entities and how Scale works can be found on Scale Docs:
 
 - Scale 101: https://scale.com/docs/key-concepts <- Start Here!
 - Project: https://docs.scale.com/reference#projects
@@ -46,8 +46,8 @@ It can be set at the task level manually. Or, using the flag `generateUniqueId`,
 
 # Recommended workflow
 1. Run as many times as necessary, using `unique_id` to ensure no duplicated tasks.
-2. After having project, batches and tasks created as desired, run one more time using the `--finalize-batches` flag. 
-3. After a batch is finalized, tasks start beeing worked on. 
+2. After having the project, batches, and tasks created as desired, run one more time using the `--finalize-batches` flag. 
+3. After a batch is finalized, tasks start being worked on. 
 - Note that new tasks cannot be submitted into a finalized batch.
 
 # Task download
