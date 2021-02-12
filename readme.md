@@ -18,7 +18,7 @@ We've done our best to abstract the data pipeline nuances and incorporate Scale 
 - `API_KEY` environment variable must be set.
 - Modify `example_schemas/schema.py`. It's an example Python dictionary describing the project and tasks to be created. It has comments on what each field is, and more detailed documentation can be found in the [Schema Section](#Schema).
 - Run the main Sail script. A __Test API Key__ can be used to try out the API and the platform. When ready to create a production project, just switch to a __Live API Key__:
-```shell
+```
 API_KEY=live_xxx python sail.py
 ```
 
@@ -57,6 +57,6 @@ There's an optional `--resume` flag that allows resuming on a previous run. It w
 
 Usage:
 
-```shell
+```
 python task_download.py --api-key live_xxxx --project project_name --resume
 ```
