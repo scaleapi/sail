@@ -35,6 +35,9 @@ class Sail:
     def finalize_batch(self, name):
         return self.request("POST", f"https://api.scale.com/v1/batches/{name}/finalize")
 
+    def update_project(self, name, payload):
+        return self.request("POST", f"https://api.scale.com/v1/projects/{name}/setParams", payload)
+
     def execute(self, fn, values):
         counter = 0
         with ThreadPoolExecutor(max_workers=self.concurrency_limit) as executor:

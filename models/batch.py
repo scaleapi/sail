@@ -31,17 +31,6 @@ def upsert(client, project_name, batches):
         else:
             return f"❌ Batch creation for '{desired_batch['name']}' failed with response {batch_res.json()}"
 
-            # TODO: Same as Task, return error resposne from Scale so the user can fix the payload instad of retrying
-            #
-            # # Try again if retry > 0
-            # if (num_retries > 0):
-            #     print(
-            #         f"Batch creation for `{desired_batch['name']}` failed with status code {batch_res.status_code}, trying {num_retries-1} more times")
-            #     upsert_batch(desired_batch, num_retries-1)
-            # else:
-            #     raise(Exception(
-            #         f"Exiting script, batch creation for {desired_batch['name']} failed"))
-
     client.execute(upsert_batch, batches['batches'])
 
 
@@ -65,16 +54,5 @@ def finalize(client, batches):
                 return f"✅ Succesfuly finalized batch '{batch_name}'"
             else:
                 return f"❌ Attempt to finalize batch '{desired_batch['name']}' failed with response {res.json()}"
-
-                # TODO: Same as Task, return error resposne from Scale so the user can fix the payload instad of retrying
-                #
-                # Try again if retry > 0
-                # if (num_retries > 0):
-                #     print(
-                #         f"Batch creation for `{batch_name}` failed with status code {batch_finalization_res.status_code}, trying {num_retries-1} more times")
-                #     finalize_batch(desired_batch, num_retries-1)
-                # else:
-                #     raise(Exception(
-                #         f"Exiting script, batch creation for {batch_name} failed"))
 
     client.execute(finalize_batch, batches['batches'])

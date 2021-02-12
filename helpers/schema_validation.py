@@ -1,3 +1,6 @@
+from helpers.logging import log_success
+
+
 def validate(schema):
 
     print("\nValidating schema...")
@@ -20,8 +23,4 @@ def validate(schema):
             raise(Exception(
                 "Batches must have an array of batches inside of it | Exiting script, schema Validation Failed"))
 
-    log("✅ Succesfully validated schema")
-
-
-def log(string):
-    print(f"{'{:11s}'.format('')}{string}")
+    log_success("Succesfully validated schema")

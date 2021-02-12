@@ -56,20 +56,4 @@ def create(client, project, batches, tasks):
         else:
             return f"❌ Task creation for '{attachment}' failed with response {res.json()}"
 
-            # TODO:
-            # - Retrying here doesn't seem to solve common issues
-            # - Scale API error details wasn't been shown to the user
-            # - Retries for connections errors could be implemented on client.py for all requests
-            # - Now showing Scale error to help fix the payload, and then the retry is done by runing the script again
-            # - For this workflow to make sense, a --finalize-batches flag could be added to the script to allow multiple runs while fixing task payload
-            #
-            # # Try again if retry > 0
-            # if (num_retries > 0):
-            #     print(
-            #         f"Task creation for `{attachment}` failed with status code {res.status_code}, trying {num_retries-1} more times")
-            #     create_task(task, num_retries-1)
-            # else:
-            #     raise(Exception(
-            #         f"Exiting script, batch creation for {attachment} failed"))
-
     client.execute(create_task, tasks_to_create)

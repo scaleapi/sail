@@ -1,7 +1,6 @@
 [
   {
     "attachment": "https://assets.marthastewart.com/styles/wmax-750/d29/baked-cake-donut-7000185-1217/baked-cake-donut-7000185-1217_horiz.jpg",
-    "callback_url": "https://example.com/callback/",
-    "batch": "Test Project 33_batch_3"
+    "callback_url": "https://example.com/callback/"
   }
 ]
