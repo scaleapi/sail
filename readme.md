@@ -1,4 +1,4 @@
-# Scale Sail
+# Sail
 
 Sail is a data pipeline starter kit meant to optimize how you provide data to Scale.
 
