@@ -1,5 +1,8 @@
 import csv
 import json
+from helpers.concurrency import execute
+from scaleapi import exceptions
+from scaleapi.tasks import TaskType
 
 
 def create(client, project, batches, tasks):
@@ -43,17 +46,15 @@ def create(client, project, batches, tasks):
                 task['unique_id'] = f"{task['project']}_{attachment}"
 
         # Try and create the task
-        res = client.create_task(project['type'], task)
+        try:
+            task_type = TaskType(project['type'])
+            new_task = client.create_task(task_type, **task)
+            return f"✅ Successfully created task {new_task.id} with attachment '{attachment}'"
 
-        # See if we were successful
-        if (res.status_code == 200):
-            task_res = res.json()
-            return f"✅ Successfully created task {task_res['task_id']} with attachment '{attachment}'"
-
-        elif (res.status_code == 409):
+        except exceptions.ScaleDuplicateTask as err:
             return f"✅ Task with unique_id '{task['unique_id']}' already exists, skipping"
 
-        else:
-            return f"❌ Task creation for '{attachment}' failed with response {res.json()}"
+        except exceptions.ScaleException as err:
+            return f"❌ Task creation for '{attachment}' failed <Status Code {err.code}: {err.message}>"
 
-    client.execute(create_task, tasks_to_create)
+    execute(create_task, tasks_to_create)

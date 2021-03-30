@@ -1,5 +1,7 @@
 import json
-from helpers.logging import log_success
+from helpers.logging import log_success, log_json
+from scaleapi import exceptions
+from scaleapi.tasks import TaskType
 
 
 def upsert(client, desired_project):
@@ -15,67 +17,54 @@ def upsert(client, desired_project):
 
     current_project = None
 
-    # Fetch this project
-    prev_project_res = client.get_project(project_name)
-
-    if (prev_project_res.status_code == 404):
-        log_success("Project not found, creating it now...")
-
-        payload = {
-            "name": project_name,
-            "type": desired_project['type'],
-            "params": project_params
-        }
-
-        new_project_res = client.create_project(payload)
-
-        if (new_project_res.status_code != 200):
-            print("❌ Could not create Project, exiting script")
-            new_project_res.raise_for_status()
-        else:
-            # A bit hacky but garaunteed to be true
-            log_success(
-                f"Successfully created project '{project_name}' with version 0"
-            )
-
-    elif (prev_project_res.status_code == 200):
-        current_project = prev_project_res.json()
+    try:
+        # Fetch this project
+        current_project = client.get_project(project_name)
 
         # Check Project Keys
         # First check the type, it's a special one that can't be updated
-        if (current_project['type'] != desired_project['type']):
-            print(
-                f"Project Schema has type '{desired_project['type']}' but this project has type '{current_project['type']}' - Project Types cannot be updated")
-            raise(Exception("❌ Project Version Mismatch, exiting script"))
+        if (current_project.type != desired_project['type']):
+            raise(Exception(
+                f"❌ Project Schema has type '{desired_project['type']}' but this project has type '{current_project.type}' - Project Types cannot be updated"))
 
         # Second, most of our project details will sit in the `paramHistory`, let's check our schema keys against what's in the latest param history
         project_needs_update = False
-        last_params = current_project['param_history'][-1]
+        last_params = current_project.last_params
         for key in filter(lambda key: key not in ['name', 'type'], desired_project.keys()):
             if not (key in last_params and last_params[key] == desired_project[key]):
                 print(f"\n❕ Difference in project detected for key '{key}'")
-                print("Desired:")
-                print(json.dumps(
-                    desired_project[key], sort_keys=True, indent=2))
-                print("")
-                print("Existing:")
-                print(json.dumps(last_params.get(
-                    key, '<Not Specified>'), sort_keys=True, indent=2))
+                print("\nDesired:")
+                log_json(desired_project[key])
+                print("\nExisting:")
+                log_json(last_params.get(key, '<Not Specified>'))
                 project_needs_update = True
 
         if (project_needs_update):
             # Create a new project version
-            with client.update_project(project_name, project_params) as res:
-                if (res.status_code != 200):
-                    raise(Exception(
-                        f"❌ Update paramas for project '{project_name}'' failed with response {res.json()}"))
-                else:
-                    # A bit hacky but garaunteed to be true
-                    log_success(
-                        f"Successfully updated project '{project_name}'' to version {len(current_project['param_history'])}")
+            try:
+                client.update_project(project_name, **project_params)
+                log_success(
+                    f"Successfully updated project '{project_name}' to version {len(current_project.as_dict()['param_history'])}")
+            except exceptions.ScaleException as err:
+                raise(Exception(
+                    f"❌ Update paramas for project '{project_name}' failed <Status Code {err.code}: {err.message}>"))
+                # A bit hacky but garaunteed to be true
         else:
             log_success(
                 f"Project '{project_name}' found with matching schema, skipping")
-    else:
-        raise(
-            Exception(f"❌ Error retreiving project {prev_project_res.json()}\n"))
+
+    except exceptions.ScaleResourceNotFound as err:
+        log_success("Project not found, creating it now...")
+        task_type = TaskType(desired_project['type'])
+        try:
+            new_project = client.create_project(
+                project_name, task_type, project_params)
+            log_success(
+                f"Successfully created project '{project_name}' with version 0")
+        except exceptions.ScaleException as err:
+            print(
+                f"❌ Project creation for '{project_name}' failed <Status Code {err.code}: {err.message}>")
+
+    except exceptions.ScaleException as err:
+        print(
+            f"❌ Project fetch for '{project_name}' failed <Status Code {err.code}: {err.message}>")

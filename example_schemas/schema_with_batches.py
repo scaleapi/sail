@@ -13,7 +13,8 @@ schema = {
             "box": {
                 "objects_to_annotate": [
                     "Bike",
-                    "Car"
+                    "Car",
+                    "Mailbox"
                 ]
             }
         }
@@ -24,15 +25,15 @@ schema = {
     "batches": {
         "batches": [
             {
-                "name": "show_and_tell_batch_1",  # Required
+                "name": "show_and_tell_batch_11",  # Required
                 "callback_url": "https://www.example.com/callback"  # Optional
             },
             {
-                "name": "show_and_tell_batch_2",  # Required
+                "name": "show_and_tell_batch_22",  # Required
                 "callback_url": "https://www.example.com/callback"  # Optional
             },
             {
-                "name": "show_and_tell_batch_3",  # Required
+                "name": "show_and_tell_batch_33",  # Required
                 "callback_url": "https://www.example.com/callback"  # Optional
             }
         ],
