@@ -29,14 +29,13 @@ def upsert(client, desired_project):
 
         # Second, most of our project details will sit in the `paramHistory`, let's check our schema keys against what's in the latest param history
         project_needs_update = False
-        last_params = current_project.last_params
         for key in filter(lambda key: key not in ['name', 'type'], desired_project.keys()):
-            if not (key in last_params and last_params[key] == desired_project[key]):
+            if not (key in current_project.params and current_project.params[key] == desired_project[key]):
                 print(f"\n❕ Difference in project detected for key '{key}'")
                 print("\nDesired:")
                 log_json(desired_project[key])
                 print("\nExisting:")
-                log_json(last_params.get(key, '<Not Specified>'))
+                log_json(current_project.params.get(key, '<Not Specified>'))
                 project_needs_update = True
 
         if (project_needs_update):
