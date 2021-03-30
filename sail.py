@@ -17,7 +17,7 @@ def main():
     finalize_batches = args.finalize_batches
 
     # Create a Python SDK client to handle making requests to Scale
-    client = ScaleClient(os.environ["API_KEY"])
+    client = ScaleClient(os.environ["API_KEY"], "sail")
 
     # Validate the schema
     schema_validation.validate(schema)
