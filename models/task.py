@@ -27,7 +27,7 @@ def create(client, project, batches, tasks):
 
     # TODO: Add support for folder import
 
-    def create_task(task, num_retries=3):
+    def create_task(task):
 
         attachment = task.get('attachment', task.get('attachments'))
 

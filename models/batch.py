@@ -7,7 +7,7 @@ def upsert(client, project_name, batches):
     print("\n\nCreating Batches...")
     print("===================")
 
-    def upsert_batch(desired_batch, num_retries=3):
+    def upsert_batch(desired_batch):
         batch_name = desired_batch['name']
         batch_callback_url = desired_batch['callback_url']
 
@@ -39,7 +39,7 @@ def finalize(client, batches):
     print("\n\nFinalizing Batches...")
     print("=====================")
 
-    def finalize_batch(batch, num_retries=3):
+    def finalize_batch(batch):
 
         batch_name = batch["name"]
 
