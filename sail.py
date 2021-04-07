@@ -1,8 +1,8 @@
 import json
 import os
+from scaleapi import ScaleClient
 from argparse import ArgumentParser
 from helpers import schema_validation
-from helpers.client import Sail
 from models import project, batch, task
 from example_schemas.schema_with_batches import schema
 
@@ -16,8 +16,8 @@ def main():
     args = get_args()
     finalize_batches = args.finalize_batches
 
-    # Create a Sail client to handle making requests to Scale
-    client = Sail(os.environ["API_KEY"])
+    # Create a Python SDK client to handle making requests to Scale
+    client = ScaleClient(os.environ["API_KEY"], "sail")
 
     # Validate the schema
     schema_validation.validate(schema)
