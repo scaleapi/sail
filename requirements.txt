@@ -1,1 +1,1 @@
-scaleapi==2.0.0
+scaleapi>=2.0.0
