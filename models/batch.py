@@ -53,6 +53,6 @@ def finalize(client, batches):
             return f"✅ Succesfuly finalized batch '{batch_name}'"
 
         except exceptions.ScaleException as err:
-            return f"❌ Attempt to finalize batch '{desired_batch['name']}' failed <Status Code {err.code}: {err.message}>"
+            return f"❌ Attempt to finalize batch '{batch_name}' failed <Status Code {err.code}: {err.message}>"
 
     execute(finalize_batch, batches['batches'])
