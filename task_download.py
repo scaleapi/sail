@@ -84,9 +84,15 @@ def get_batches():
     try:
         while has_next_page:
             batch_params['offset'] = (next_page - 1) * 100
+            res = requests.get(
+                BATCH_URL, 
+                auth=auth,
+                params=batch_params
+            ).json()
 
-            res = requests.get(BATCH_URL, auth=auth,
-                               params=batch_params).json()
+            if 'status_code' in res:
+                # Error responses have a status code in them
+                raise Exception(res)
 
             info(f'Getting batch page {next_page}/{res.get("totalPages")}')
 
@@ -95,9 +101,11 @@ def get_batches():
 
             for batch in res.get('docs'):
                 batches.append(batch['name'])
-    except Exception:
+
+    except Exception as e:
         logging.exception(
-            "Exception occurred while downloading batch pages, please try again")
+            "Exception occurred while downloading batch pages, please try again"
+        )
         quit()
 
     return batches
@@ -158,7 +166,7 @@ def get_tasks(batch):
 
 def get_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--api-key', required=True)
+    ap.add_argument('--api_key', required=True)
     ap.add_argument('--resume', action='store_true')
     ap.add_argument('--project')
     ap.add_argument('--dir', default='task_download')
