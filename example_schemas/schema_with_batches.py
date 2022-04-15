@@ -46,9 +46,9 @@ schema = {
         "list": [
             {
                 # If creating more than one batch, you need to specify the batch for each task here
-                "batch": "show_and_tell_batch_1",
+                "batch": "show_and_tell_batch_11",
                 # The url of the attachment to work on
-                "attachment": "https://media4.s-nbcnews./i/newscms/2020_08/3241236/200223-chevy-c8-cs-158p_ee63ca035f5144382d5dbbe3aea81192.jpg?asd",
+                "attachment": "https://media4.s-nbcnews.com/i/newscms/2020_08/3241236/200223-chevy-c8-cs-158p_ee63ca035f5144382d5dbbe3aea81192.jpg?asd",
                 # You can specify it here, or use the generateUniqueId flag below instead
                 "unique_id": "show_and_tell_task_1"
             }
