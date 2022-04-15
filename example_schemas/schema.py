@@ -6,9 +6,8 @@ schema = {
         "type": "imageannotation",
         # Required, can use plain text, Markdown, or an embedded Google Doc
         "instruction": "Mark all bikes and cars on the image",
-        # Required, but can be just "https://www.example.com/callback"
-        "callback_url": "https://www.example.com/callback",
-        # Geometries to annotate on the task attachment image
+        
+        # Example, Geometries to annotate on the task attachment image
         "geometries": {
             "box": {
                 "objects_to_annotate": [
