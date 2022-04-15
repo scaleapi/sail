@@ -27,7 +27,7 @@ def create_rapid_task(payload):
 
 def main():
     print("\n\nCreating Batch...")
-    batch = client.create_batch(project=project_name, batch_name=batch_name, self_label_batch=True)
+    batch = client.create_batch(project=project_name, batch_name=batch_name)
     print(f"Batch {batch.name} created")
 
     # build task payloads
