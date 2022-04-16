@@ -4,7 +4,7 @@ from scaleapi import ScaleClient
 from argparse import ArgumentParser
 from helpers import schema_validation
 from models import project, batch, task
-from example_schemas.schema_with_batches import schema
+from example_schemas.schema_rapid_batch import schema
 
 
 def main():
