@@ -9,7 +9,7 @@ def upsert(client, project_name, batches):
 
     def upsert_batch(desired_batch):
         batch_name = desired_batch['name']
-        batch_callback_url = desired_batch['callback_url']
+        batch_callback_url = desired_batch.get('callback_url')
 
         try:
             current_batch = client.get_batch(desired_batch['name'])

@@ -51,7 +51,7 @@ def create(client, project, batches, tasks):
             new_task = client.create_task(task_type, **task)
             return f"✅ Successfully created task {new_task.id} with attachment '{attachment}'"
 
-        except exceptions.ScaleDuplicateTask as err:
+        except exceptions.ScaleDuplicateResource as err:
             return f"✅ Task with unique_id '{task['unique_id']}' already exists, skipping"
 
         except exceptions.ScaleException as err:
