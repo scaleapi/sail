@@ -1,4 +1,4 @@
-# Script that takes in an array of batch names (split by comma) and applies take a bulk action such as removing the unique id or canceling all tasks.
+# Script that takes in an array of batch names (split by comma) and applies a bulk action to cancel all tasks in each batch.
 # By default, this script makes 50 concurrent API calls.
 from collections import defaultdict
 import scaleapi
@@ -89,4 +89,6 @@ def get_args():
     return ap.parse_args()
 
 if __name__ == "__main__":
+    # Example: python cancelBatch.py --api_key "SCALE_API_KEY" --batches "batch1,batch2" --clear "True"
     main()
+    
